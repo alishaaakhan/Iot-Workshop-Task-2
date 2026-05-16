@@ -1,0 +1,16 @@
+{
+  "name": "multi-sensor-dashboard-2026",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2"
+  }
+}
+

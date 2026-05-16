@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: multi-sensor-dashboard-2026
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SQLITE_FILE
+        value: dashboard.sqlite
+    disk:
+      name: dashboard-data
+      mountPath: /var/data
+      sizeGB: 1
+

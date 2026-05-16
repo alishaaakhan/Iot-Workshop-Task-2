@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Multi-Sensor Dashboard 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            boxShadow: {
+              soft: "0 12px 40px rgba(2, 6, 23, 0.14)"
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  </head>
+  <body class="h-full bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-56 -right-56 w-[700px] h-[700px] rounded-full bg-gradient-to-br from-blue-500/20 via-cyan-400/10 to-transparent blur-3xl"></div>
+      <div class="absolute -bottom-56 -left-56 w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-indigo-500/15 via-purple-400/10 to-transparent blur-3xl"></div>
+    </div>
+
+    <!-- Navbar -->
+    <div class="fixed top-0 left-0 right-0 bg-white/75 dark:bg-slate-950/60 backdrop-blur border-b border-slate-200 dark:border-slate-800 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-sm"></div>
+          <div>
+            <div class="font-bold text-slate-900 dark:text-white leading-5">Multi-Sensor Dashboard 2026</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Real-time monitoring</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="hidden sm:block text-sm text-slate-700 dark:text-slate-200">
+            <span class="text-slate-500 dark:text-slate-400">Signed in:</span>
+            <span id="username" class="font-semibold">...</span>
+          </div>
+          <button id="themeBtn" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-900 text-sm text-slate-700 dark:text-slate-200">
+            Theme
+          </button>
+          <button id="logoutBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-4 py-2 rounded-lg shadow-sm">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative pt-24 max-w-6xl mx-auto px-4 pb-10">
+      <!-- Gauges -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-2xl shadow-soft p-5 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2">
+            <div class="text-slate-900 dark:text-white font-semibold">Temperature</div>
+            <div class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">0–50°C</div>
+          </div>
+          <div class="w-[210px] h-[210px]">
+            <svg width="200" height="200" viewBox="0 0 200 200" class="text-slate-900 dark:text-white">
+              <!-- base ring -->
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(148,163,184,0.30)" stroke-width="14" />
+              <!-- colored segments (270° ring, rotated -135°) -->
+              <g transform="rotate(-135 100 100)">
+                <circle id="tempSeg1" cx="100" cy="100" r="78" fill="none" stroke="#3b82f6" stroke-width="14" stroke-linecap="round" />
+                <circle id="tempSeg2" cx="100" cy="100" r="78" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round" />
+                <circle id="tempSeg3" cx="100" cy="100" r="78" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round" />
+              </g>
+              <!-- needle -->
+              <g id="tempNeedle" style="transition: transform 600ms cubic-bezier(.2,.8,.2,1); transform-origin: 100px 100px;">
+                <line x1="100" y1="104" x2="100" y2="34" stroke="currentColor" stroke-opacity="0.9" stroke-width="3.2" />
+                <circle cx="100" cy="104" r="6" fill="currentColor" fill-opacity="0.9" />
+              </g>
+              <text id="tempValue" x="100" y="135" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">0°C</text>
+            </svg>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live • updates every 2 seconds</div>
+        </div>
+
+        <div class="bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-2xl shadow-soft p-5 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2">
+            <div class="text-slate-900 dark:text-white font-semibold">Humidity</div>
+            <div class="text-xs px-2 py-1 rounded-full bg-cyan-50 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-200">0–100%</div>
+          </div>
+          <div class="w-[210px] h-[210px]">
+            <svg width="200" height="200" viewBox="0 0 200 200" class="text-slate-900 dark:text-white">
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(148,163,184,0.30)" stroke-width="14" />
+              <g transform="rotate(-135 100 100)">
+                <circle id="humSeg1" cx="100" cy="100" r="78" fill="none" stroke="#f97316" stroke-width="14" stroke-linecap="round" />
+                <circle id="humSeg2" cx="100" cy="100" r="78" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round" />
+                <circle id="humSeg3" cx="100" cy="100" r="78" fill="none" stroke="#3b82f6" stroke-width="14" stroke-linecap="round" />
+              </g>
+              <g id="humNeedle" style="transition: transform 600ms cubic-bezier(.2,.8,.2,1); transform-origin: 100px 100px;">
+                <line x1="100" y1="104" x2="100" y2="34" stroke="currentColor" stroke-opacity="0.9" stroke-width="3.2" />
+                <circle cx="100" cy="100" r="0.1" fill="none" />
+                <circle cx="100" cy="104" r="6" fill="currentColor" fill-opacity="0.9" />
+              </g>
+              <text id="humValue" x="100" y="135" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">0%</text>
+            </svg>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live • updates every 2 seconds</div>
+        </div>
+
+        <div class="bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-2xl shadow-soft p-5 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2">
+            <div class="text-slate-900 dark:text-white font-semibold">Soil Moisture</div>
+            <div class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-200">0–100%</div>
+          </div>
+          <div class="w-[210px] h-[210px]">
+            <svg width="200" height="200" viewBox="0 0 200 200" class="text-slate-900 dark:text-white">
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(148,163,184,0.30)" stroke-width="14" />
+              <g transform="rotate(-135 100 100)">
+                <circle id="soilSeg1" cx="100" cy="100" r="78" fill="none" stroke="#92400e" stroke-width="14" stroke-linecap="round" />
+                <circle id="soilSeg2" cx="100" cy="100" r="78" fill="none" stroke="#84cc16" stroke-width="14" stroke-linecap="round" />
+                <circle id="soilSeg3" cx="100" cy="100" r="78" fill="none" stroke="#166534" stroke-width="14" stroke-linecap="round" />
+              </g>
+              <g id="soilNeedle" style="transition: transform 600ms cubic-bezier(.2,.8,.2,1); transform-origin: 100px 100px;">
+                <line x1="100" y1="104" x2="100" y2="34" stroke="currentColor" stroke-opacity="0.9" stroke-width="3.2" />
+                <circle cx="100" cy="104" r="6" fill="currentColor" fill-opacity="0.9" />
+              </g>
+              <text id="soilValue" x="100" y="135" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">0%</text>
+            </svg>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live • updates every 2 seconds</div>
+        </div>
+      </div>
+
+      <!-- IR Motion (always visible) -->
+      <div class="mt-4">
+        <div class="bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-2xl shadow-soft p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div class="text-slate-900 dark:text-white font-semibold">IR Motion Sensor</div>
+            <div class="text-sm text-slate-600 dark:text-slate-300">Detects movement/proximity (HIGH/LOW)</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="text-sm text-slate-500 dark:text-slate-400">Status</div>
+            <div id="motionPill" class="px-3 py-1.5 rounded-full text-sm font-semibold bg-slate-100 dark:bg-slate-950/40 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-800">
+              --
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="mt-6 bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800 rounded-2xl shadow-soft">
+        <div class="p-3 border-b border-slate-200 dark:border-slate-800">
+          <div class="inline-flex p-1 rounded-xl bg-slate-100/80 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <button class="tabBtn px-4 py-2 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm" data-tab="tabDashboard">Dashboard</button>
+            <button class="tabBtn px-4 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-900/60" data-tab="tabGraphs">Graphs</button>
+            <button class="tabBtn px-4 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-900/60" data-tab="tabRecords">Records</button>
+          </div>
+        </div>
+
+        <!-- Tab: Dashboard -->
+        <div id="tabDashboard" class="p-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 min-h-[130px]">
+              <div class="text-slate-600 dark:text-slate-300 text-sm">Current Temperature</div>
+              <div class="text-4xl font-bold text-slate-900 dark:text-white mt-2">
+                <span id="statTemp">--</span><span class="text-lg font-semibold text-slate-500 dark:text-slate-300"> °C</span>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-3">Last updated: <span id="statUpdated1">--</span></div>
+            </div>
+            <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 min-h-[130px]">
+              <div class="text-slate-600 dark:text-slate-300 text-sm">Current Humidity</div>
+              <div class="text-4xl font-bold text-slate-900 dark:text-white mt-2">
+                <span id="statHum">--</span><span class="text-lg font-semibold text-slate-500 dark:text-slate-300"> %</span>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-3">Last updated: <span id="statUpdated2">--</span></div>
+            </div>
+            <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 min-h-[130px]">
+              <div class="text-slate-600 dark:text-slate-300 text-sm">Current Soil Moisture</div>
+              <div class="text-4xl font-bold text-slate-900 dark:text-white mt-2">
+                <span id="statSoil">--</span><span class="text-lg font-semibold text-slate-500 dark:text-slate-300"> %</span>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-3">Last updated: <span id="statUpdated3">--</span></div>
+            </div>
+            <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 min-h-[130px]">
+              <div class="text-slate-600 dark:text-slate-300 text-sm">Motion Status</div>
+              <div class="text-4xl font-bold text-slate-900 dark:text-white mt-2" id="statMotion">--</div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-3">Last updated: <span id="statUpdated4">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Graphs -->
+        <div id="tabGraphs" class="p-5 hidden">
+          <div class="text-slate-800 dark:text-slate-100 font-semibold mb-3">Last 24 Hours Trends</div>
+
+          <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-4">
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Temperature Trend (°C)</div>
+            <div style="position: relative; height: 280px">
+              <canvas id="tempChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-4">
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Humidity Trend (%)</div>
+            <div style="position: relative; height: 280px">
+              <canvas id="humChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white/70 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">Soil Moisture Trend (%)</div>
+            <div style="position: relative; height: 280px">
+              <canvas id="soilChart"></canvas>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-3">Auto-refresh every 5 minutes</div>
+        </div>
+
+        <!-- Tab: Records -->
+        <div id="tabRecords" class="p-5 hidden">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+            <div class="flex flex-col sm:flex-row gap-2 sm:items-end">
+              <div>
+                <label class="block text-xs text-slate-600 dark:text-slate-300">Search by date</label>
+                <input
+                  id="searchDate"
+                  type="date"
+                  class="border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/30 rounded-xl px-3 py-2 w-full sm:w-[200px] text-slate-900 dark:text-white"
+                />
+              </div>
+              <button id="searchBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-4 py-2 rounded-xl shadow-sm">
+                Search
+              </button>
+              <button id="clearSearchBtn" class="bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                Clear
+              </button>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button class="filterBtn bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800" data-range="today">
+                Today
+              </button>
+              <button class="filterBtn bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800" data-range="week">
+                This Week
+              </button>
+              <button class="filterBtn bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800" data-range="month">
+                This Month
+              </button>
+              <button id="exportBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-4 py-2 rounded-xl shadow-sm">
+                Export CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl bg-white/70 dark:bg-slate-950/30">
+            <table class="min-w-full text-sm">
+              <thead class="bg-slate-100/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200">
+                <tr>
+                  <th class="text-left p-3">#</th>
+                  <th class="text-left p-3">Temperature (°C)</th>
+                  <th class="text-left p-3">Humidity (%)</th>
+                  <th class="text-left p-3">Soil Moisture (%)</th>
+                  <th class="text-left p-3">Time</th>
+                  <th class="text-left p-3">Date</th>
+                  <th class="text-left p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-3 flex items-center justify-between">
+            <div class="text-sm text-slate-600 dark:text-slate-300">
+              Page <span id="pageNum">1</span> of <span id="pagePages">1</span> • Total <span id="pageTotal">0</span>
+            </div>
+            <div class="flex gap-2">
+              <button id="prevPage" class="bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                Prev
+              </button>
+              <button id="nextPage" class="bg-slate-100/80 hover:bg-slate-200 text-slate-900 dark:bg-slate-950/30 dark:hover:bg-slate-900/60 dark:text-slate-100 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Tabs ---
+      const tabBtns = Array.from(document.querySelectorAll(".tabBtn"));
+      const tabs = ["tabDashboard", "tabGraphs", "tabRecords"];
+
+      tabBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach((b) => {
+            b.classList.remove("bg-white", "dark:bg-slate-900", "text-slate-900", "dark:text-white", "shadow-sm");
+            b.classList.add("text-slate-700", "dark:text-slate-200");
+          });
+          btn.classList.add("bg-white", "dark:bg-slate-900", "text-slate-900", "dark:text-white", "shadow-sm");
+          btn.classList.remove("text-slate-700", "dark:text-slate-200");
+
+          const target = btn.dataset.tab;
+          tabs.forEach((t) => document.getElementById(t).classList.add("hidden"));
+          document.getElementById(target).classList.remove("hidden");
+        });
+      });
+
+      // --- Theme ---
+      const themeBtn = document.getElementById("themeBtn");
+      function applyTheme(theme) {
+        if (theme === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+      }
+      applyTheme(localStorage.getItem("theme") || "light");
+      themeBtn.addEventListener("click", () => {
+        const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+        localStorage.setItem("theme", next);
+        applyTheme(next);
+        refreshChartTheme();
+      });
+
+      // --- Auth UI ---
+      async function loadMe() {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const data = await res.json();
+        if (!data.success || !data.user) {
+          window.location.href = "/pages/login.html";
+          return;
+        }
+        document.getElementById("username").textContent = data.user.name;
+      }
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        window.location.href = "/pages/login.html";
+      });
+
+      // --- Gauges ---
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function setNeedle(elId, value, maxValue) {
+        const v = clamp(value, 0, maxValue);
+        const angle = (v / maxValue) * 270 - 135; // -135 to +135
+        const el = document.getElementById(elId);
+        // use style transform so CSS transition works
+        el.style.transform = `rotate(${angle}deg)`;
+      }
+
+      function setupRingSegments() {
+        // Build nice 270° rings using stroke-dasharray on circles
+        const r = 78;
+        const C = 2 * Math.PI * r;
+        const arc = C * 0.75; // 270 degrees
+        const gap = C - arc;
+
+        function setSeg(el, startLen, segLen) {
+          // Draw only arc portion, with spacing after it (full circle dash array)
+          el.setAttribute("stroke-dasharray", `${segLen} ${C}`);
+          // Negative offset moves start point forward along path
+          el.setAttribute("stroke-dashoffset", `${-(startLen)}`);
+        }
+
+        // Temperature: 0-15 (30%), 15-30 (30%), 30-50 (40%)
+        const t1 = arc * 0.30;
+        const t2 = arc * 0.30;
+        const t3 = arc * 0.40;
+        setSeg(document.getElementById("tempSeg1"), 0, t1);
+        setSeg(document.getElementById("tempSeg2"), t1, t2);
+        setSeg(document.getElementById("tempSeg3"), t1 + t2, t3);
+
+        // Humidity: 0-30 (30%), 30-70 (40%), 70-100 (30%)
+        const h1 = arc * 0.30;
+        const h2 = arc * 0.40;
+        const h3 = arc * 0.30;
+        setSeg(document.getElementById("humSeg1"), 0, h1);
+        setSeg(document.getElementById("humSeg2"), h1, h2);
+        setSeg(document.getElementById("humSeg3"), h1 + h2, h3);
+
+        // Soil: 0-33 (33%), 33-66 (33%), 66-100 (34%)
+        const s1 = arc * 0.33;
+        const s2 = arc * 0.33;
+        const s3 = arc * 0.34;
+        setSeg(document.getElementById("soilSeg1"), 0, s1);
+        setSeg(document.getElementById("soilSeg2"), s1, s2);
+        setSeg(document.getElementById("soilSeg3"), s1 + s2, s3);
+
+        // hide the unused gap by pushing it into dasharray (not drawn)
+        // (gap is implicitly the remaining part of the circle)
+      }
+
+      function formatTimeAndDate(istString) {
+        // istString like: "2026-05-09 10:53:45"
+        if (!istString) return { time: "--", date: "--", full: "--" };
+        const parts = istString.split(" ");
+        const d = parts[0] || "";
+        const t = parts[1] || "";
+        const [hh, mm] = t.split(":");
+        const h = parseInt(hh || "0", 10);
+        const ampm = h >= 12 ? "PM" : "AM";
+        const hour12 = ((h + 11) % 12) + 1;
+        const time = `${hour12}:${mm || "00"} ${ampm}`;
+        const [yyyy, MM, dd] = d.split("-");
+        const date = `${dd || "--"}-${MM || "--"}-${yyyy || "----"}`;
+        return { time, date, full: istString };
+      }
+
+      async function refreshLatest() {
+        try {
+          const res = await fetch("/api/sensors/latest", { credentials: "include" });
+          const data = await res.json();
+
+          const temp = Number(data.temperature || 0);
+          const hum = Number(data.humidity || 0);
+          const soil = Number(data.soil_moisture || 0);
+          const motion = !!data.motion;
+
+          setNeedle("tempNeedle", temp, 50);
+          setNeedle("humNeedle", hum, 100);
+          setNeedle("soilNeedle", soil, 100);
+
+          document.getElementById("tempValue").textContent = temp.toFixed(1) + "°C";
+          document.getElementById("humValue").textContent = hum.toFixed(0) + "%";
+          document.getElementById("soilValue").textContent = soil.toFixed(0) + "%";
+
+          document.getElementById("statTemp").textContent = temp.toFixed(1);
+          document.getElementById("statHum").textContent = hum.toFixed(0);
+          document.getElementById("statSoil").textContent = soil.toFixed(0);
+          document.getElementById("statMotion").textContent = motion ? "Yes" : "No";
+          const motionPill = document.getElementById("motionPill");
+          motionPill.textContent = motion ? "Motion Detected" : "No Motion";
+          motionPill.classList.remove(
+            "bg-slate-100",
+            "text-slate-800",
+            "dark:bg-slate-950/40",
+            "dark:text-slate-100",
+            "bg-green-50",
+            "text-green-800",
+            "dark:bg-green-500/10",
+            "dark:text-green-200"
+          );
+          if (motion) {
+            motionPill.classList.add("bg-green-50", "text-green-800", "dark:bg-green-500/10", "dark:text-green-200");
+          } else {
+            motionPill.classList.add("bg-slate-100", "text-slate-800", "dark:bg-slate-950/40", "dark:text-slate-100");
+          }
+
+          const ts = formatTimeAndDate(data.recorded_at);
+          document.getElementById("statUpdated1").textContent = ts.full;
+          document.getElementById("statUpdated2").textContent = ts.full;
+          document.getElementById("statUpdated3").textContent = ts.full;
+          document.getElementById("statUpdated4").textContent = ts.full;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // --- Charts ---
+      function chartTextColor() {
+        return document.documentElement.classList.contains("dark") ? "#e2e8f0" : "#334155";
+      }
+      function chartGridColor() {
+        return document.documentElement.classList.contains("dark") ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.35)";
+      }
+
+      const tempChart = new Chart(document.getElementById("tempChart").getContext("2d"), {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Temperature (°C)",
+              data: [],
+              borderColor: "#f97316",
+              backgroundColor: "rgba(249,115,22,0.12)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true, position: "top", labels: { color: chartTextColor() } } },
+          scales: {
+            x: { ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
+            y: { beginAtZero: true, max: 50, ticks: { color: chartTextColor() }, grid: { color: chartGridColor() }, title: { display: true, text: "Temperature (°C)", color: chartTextColor() } }
+          }
+        }
+      });
+
+      const humChart = new Chart(document.getElementById("humChart").getContext("2d"), {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Humidity (%)",
+              data: [],
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59,130,246,0.12)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true, position: "top", labels: { color: chartTextColor() } } },
+          scales: {
+            x: { ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
+            y: { beginAtZero: true, max: 100, ticks: { color: chartTextColor() }, grid: { color: chartGridColor() }, title: { display: true, text: "Humidity (%)", color: chartTextColor() } }
+          }
+        }
+      });
+
+      const soilChart = new Chart(document.getElementById("soilChart").getContext("2d"), {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Soil Moisture (%)",
+              data: [],
+              borderColor: "#16a34a",
+              backgroundColor: "rgba(22,163,74,0.12)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true, position: "top", labels: { color: chartTextColor() } } },
+          scales: {
+            x: { ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
+            y: { beginAtZero: true, max: 100, ticks: { color: chartTextColor() }, grid: { color: chartGridColor() }, title: { display: true, text: "Soil Moisture (%)", color: chartTextColor() } }
+          }
+        }
+      });
+
+      function refreshChartTheme() {
+        const text = chartTextColor();
+        const grid = chartGridColor();
+        [tempChart, humChart, soilChart].forEach((c) => {
+          c.options.plugins.legend.labels.color = text;
+          c.options.scales.x.ticks.color = text;
+          c.options.scales.y.ticks.color = text;
+          c.options.scales.x.grid.color = grid;
+          c.options.scales.y.grid.color = grid;
+          if (c.options.scales.y.title) c.options.scales.y.title.color = text;
+          c.update();
+        });
+      }
+
+      function hourlyLabel(istString) {
+        // "YYYY-MM-DD HH:mm:ss" -> "HH:MM"
+        if (!istString) return "";
+        const parts = istString.split(" ");
+        const time = parts[1] || "";
+        return time.slice(0, 5);
+      }
+
+      async function refreshCharts() {
+        try {
+          const res = await fetch("/api/sensors/last24h", { credentials: "include" });
+          const rows = await res.json();
+
+          // Reduce labels a bit (show 1 label per ~hour if data is frequent)
+          const labels = [];
+          const temps = [];
+          const hums = [];
+          const soils = [];
+
+          const step = Math.max(1, Math.floor(rows.length / 24));
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i];
+            temps.push(Number(r.temperature || 0));
+            hums.push(Number(r.humidity || 0));
+            soils.push(Number(r.soil_moisture || 0));
+            labels.push(i % step === 0 ? hourlyLabel(r.recorded_at) : "");
+          }
+
+          tempChart.data.labels = labels;
+          tempChart.data.datasets[0].data = temps;
+          tempChart.update();
+
+          humChart.data.labels = labels;
+          humChart.data.datasets[0].data = hums;
+          humChart.update();
+
+          soilChart.data.labels = labels;
+          soilChart.data.datasets[0].data = soils;
+          soilChart.update();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // --- Records ---
+      let currentPage = 1;
+      const limit = 20;
+
+      function rowTimeDate(istString) {
+        const x = formatTimeAndDate(istString);
+        return x;
+      }
+
+      function setPaging(total, page, pages) {
+        document.getElementById("pageTotal").textContent = total;
+        document.getElementById("pageNum").textContent = page;
+        document.getElementById("pagePages").textContent = pages;
+        document.getElementById("prevPage").disabled = page <= 1;
+        document.getElementById("nextPage").disabled = page >= pages;
+        document.getElementById("prevPage").classList.toggle("opacity-50", page <= 1);
+        document.getElementById("nextPage").classList.toggle("opacity-50", page >= pages);
+      }
+
+      async function loadRecordsPage(page) {
+        const res = await fetch(`/api/sensors/all?page=${page}&limit=${limit}`, { credentials: "include" });
+        const json = await res.json();
+        const body = document.getElementById("recordsBody");
+        body.innerHTML = "";
+
+        const data = json.data || [];
+        data.forEach((r, idx) => {
+          const td = rowTimeDate(r.recorded_at);
+          const tr = document.createElement("tr");
+          tr.className = idx % 2 === 0 ? "bg-white hover:bg-slate-50" : "bg-slate-50 hover:bg-slate-100";
+          tr.innerHTML = `
+            <td class="p-3">${(page - 1) * limit + idx + 1}</td>
+            <td class="p-3">${Number(r.temperature).toFixed(1)}</td>
+            <td class="p-3">${Number(r.humidity).toFixed(0)}</td>
+            <td class="p-3">${Number(r.soil_moisture).toFixed(0)}</td>
+            <td class="p-3">${td.time}</td>
+            <td class="p-3">${td.date}</td>
+            <td class="p-3">
+              <button class="deleteBtn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-id="${r.id}">
+                Delete
+              </button>
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+
+        body.querySelectorAll(".deleteBtn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            if (!confirm("Delete this record?")) return;
+            await fetch(`/api/sensors/${id}`, { method: "DELETE" });
+            await loadRecordsPage(currentPage);
+          });
+        });
+
+        currentPage = json.page || page;
+        setPaging(json.total || 0, json.page || page, json.pages || 1);
+      }
+
+      document.getElementById("prevPage").addEventListener("click", () => loadRecordsPage(Math.max(1, currentPage - 1)));
+      document.getElementById("nextPage").addEventListener("click", () => loadRecordsPage(currentPage + 1));
+
+      document.getElementById("searchBtn").addEventListener("click", async () => {
+        const date = document.getElementById("searchDate").value;
+        if (!date) return;
+        const res = await fetch(`/api/sensors/search?date=${encodeURIComponent(date)}`);
+        const rows = await res.json();
+        const body = document.getElementById("recordsBody");
+        body.innerHTML = "";
+        rows.forEach((r, idx) => {
+          const td = rowTimeDate(r.recorded_at);
+          const tr = document.createElement("tr");
+          tr.className = idx % 2 === 0 ? "bg-white hover:bg-slate-50" : "bg-slate-50 hover:bg-slate-100";
+          tr.innerHTML = `
+            <td class="p-3">${idx + 1}</td>
+            <td class="p-3">${Number(r.temperature).toFixed(1)}</td>
+            <td class="p-3">${Number(r.humidity).toFixed(0)}</td>
+            <td class="p-3">${Number(r.soil_moisture).toFixed(0)}</td>
+            <td class="p-3">${td.time}</td>
+            <td class="p-3">${td.date}</td>
+            <td class="p-3">
+              <button class="deleteBtn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-id="${r.id}">
+                Delete
+              </button>
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+        body.querySelectorAll(".deleteBtn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            if (!confirm("Delete this record?")) return;
+            await fetch(`/api/sensors/${id}`, { method: "DELETE" });
+            document.getElementById("searchBtn").click();
+          });
+        });
+        setPaging(rows.length, 1, 1);
+      });
+
+      document.getElementById("clearSearchBtn").addEventListener("click", async () => {
+        document.getElementById("searchDate").value = "";
+        await loadRecordsPage(1);
+      });
+
+      document.querySelectorAll(".filterBtn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const range = btn.dataset.range;
+          const res = await fetch(`/api/sensors/search?time_range=${encodeURIComponent(range)}`);
+          const rows = await res.json();
+          const body = document.getElementById("recordsBody");
+          body.innerHTML = "";
+          rows.forEach((r, idx) => {
+            const td = rowTimeDate(r.recorded_at);
+            const tr = document.createElement("tr");
+            tr.className = idx % 2 === 0 ? "bg-white hover:bg-slate-50" : "bg-slate-50 hover:bg-slate-100";
+            tr.innerHTML = `
+              <td class="p-3">${idx + 1}</td>
+              <td class="p-3">${Number(r.temperature).toFixed(1)}</td>
+              <td class="p-3">${Number(r.humidity).toFixed(0)}</td>
+              <td class="p-3">${Number(r.soil_moisture).toFixed(0)}</td>
+              <td class="p-3">${td.time}</td>
+              <td class="p-3">${td.date}</td>
+              <td class="p-3">
+                <button class="deleteBtn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-id="${r.id}">
+                  Delete
+                </button>
+              </td>
+            `;
+            body.appendChild(tr);
+          });
+          body.querySelectorAll(".deleteBtn").forEach((b) => {
+            b.addEventListener("click", async () => {
+              const id = b.dataset.id;
+              if (!confirm("Delete this record?")) return;
+              await fetch(`/api/sensors/${id}`, { method: "DELETE" });
+              btn.click();
+            });
+          });
+          setPaging(rows.length, 1, 1);
+        });
+      });
+
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const date = document.getElementById("searchDate").value;
+        if (date) {
+          window.location.href = `/api/sensors/export?start_date=${encodeURIComponent(date)}&end_date=${encodeURIComponent(date)}`;
+        } else {
+          window.location.href = "/api/sensors/export";
+        }
+      });
+
+      // --- Boot ---
+      (async () => {
+        await loadMe();
+        setupRingSegments();
+        await refreshLatest();
+        await refreshCharts();
+        await loadRecordsPage(1);
+
+        setInterval(refreshLatest, 2000);
+        setInterval(refreshCharts, 5 * 60 * 1000);
+      })();
+    </script>
+  </body>
+</html>
+
